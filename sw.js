@@ -1,5 +1,5 @@
 // Service worker: permite abrir o app sem internet depois da primeira visita.
-const CACHE = 'chamada-ativa-v1.1';
+const CACHE = 'chamada-ativa-v1.2';
 const ARQUIVOS = ['./', './index.html', './manifest.webmanifest', './icon-192.png', './icon-512.png', './jspdf.umd.min.js', './jspdf.plugin.autotable.min.js'];
 self.addEventListener('install', e => {
   e.waitUntil(caches.open(CACHE).then(c => c.addAll(ARQUIVOS)));

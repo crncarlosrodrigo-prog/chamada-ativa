@@ -153,7 +153,7 @@ const MESES = ['janeiro','fevereiro','março','abril','maio','junho','julho','ag
 const DIAS = ['domingo','segunda','terça','quarta','quinta','sexta','sábado'];
 const diaSemana = iso => DIAS[new Date(iso+'T12:00:00').getDay()];
 const nomeMes = ym => { const [y,m] = ym.split('-'); return MESES[Number(m)-1] + ' de ' + y; };
-const VERSAO = '1.1';
+const VERSAO = '1.2';
 
 function telWhats(t){
   let d = String(t||'').replace(/\D/g,'');
@@ -381,15 +381,25 @@ function abrir(titulo, corpo){
 }
 function fechar(){
   const o = document.getElementById('ov'); if(o) o.remove();
-  if(ui.saida){ ui.saida = false; guard(); }
+  if(ui.saida) ui.saida = false;
 }
 
-/* ================= Confirmação ao sair (botão voltar) ================= */
-function guard(){ try{ history.pushState({ca:Date.now()}, ''); }catch(e){} }
+/* ================= Confirmação ao sair (botão voltar) =================
+   O Chrome no Android ignora no "voltar" as entradas de histórico criadas sem toque do usuário.
+   Por isso cada toque na tela cria (no máximo) uma entrada de proteção, até 3 níveis.
+   Ao voltar até a entrada inicial, o app pergunta antes de sair. */
+const nivelHist = () => (history.state && history.state.ca) || 0;
+function reforcar(){ try{ const n = nivelHist(); if(n < 3) history.pushState({ca:n+1}, ''); }catch(e){} }
 window.addEventListener('popstate', () => {
   const ov = document.getElementById('ov');
-  if(ov && !ui.saida){ ov.remove(); guard(); return; }          // voltar fecha a janela aberta
-  if(ui.tab !== 'chamada'){ ui.tab = 'chamada'; render(); guard(); return; } // voltar leva para a Chamada
+  if(nivelHist() > 0){                                   // ainda há proteção: navega dentro do app
+    if(ov){ ov.remove(); ui.saida = false; return; }     // 1º: fecha a janela aberta
+    if(ui.tab !== 'chamada'){ ui.tab = 'chamada'; render(); scrollTo(0,0); } // 2º: volta para a Chamada
+    return;
+  }
+  // Chegou ao início do histórico: o próximo "voltar" fecharia o app, então pergunta agora.
+  if(ov) ov.remove();
+  if(ui.tab !== 'chamada'){ ui.tab = 'chamada'; render(); }
   abrir('Sair do app?', `<p style="margin-top:0">Seus dados continuam salvos neste celular.</p>
     <div class="actions"><button class="btn" data-a="ficarApp">Continuar no app</button><button class="btn ghost" data-a="sairApp">Sair</button></div>`);
   ui.saida = true;
@@ -810,7 +820,8 @@ function exemplo(){
 }
 
 render();
-guard();
+// Cada toque (clique) cria no máximo uma proteção do botão voltar — o clique conta como ação do usuário para o Chrome.
+document.addEventListener('click', e => { if(!e.target.closest('[data-a=sairApp]')) reforcar(); }, true);
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   navigator.serviceWorker.register('sw.js').catch(() => {});
 }

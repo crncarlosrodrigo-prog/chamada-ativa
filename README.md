@@ -1,4 +1,4 @@
-# Chamada Ativa (v1.1)
+# Chamada Ativa (v1.2)
 
 Sistema mobile (PWA) de controle de presença e evolução para um programa de atividade física de idosas.
 Projeto extensionista — Análise e Desenvolvimento de Sistemas, PUCPR.
