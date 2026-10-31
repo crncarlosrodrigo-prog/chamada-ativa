@@ -1,4 +1,4 @@
-# Chamada Ativa
+# Chamada Ativa (v1.1)
 
 Sistema mobile (PWA) de controle de presença e evolução para um programa de atividade física de idosas.
 Projeto extensionista — Análise e Desenvolvimento de Sistemas, PUCPR.
@@ -9,6 +9,9 @@ Projeto extensionista — Análise e Desenvolvimento de Sistemas, PUCPR.
 - **Aviso no WhatsApp**: gera a mensagem personalizada para o celular cadastrado da aluna (um toque para enviar).
 - **Lista de espera**: ao liberar uma vaga, o app mostra as próximas da fila (prioriza quem prefere a mesma turma).
 - **Evolução de 1 a 5**: registro rápido do nível + anotações, com histórico por aluna.
+- **Relatório mensal em PDF** (Mais → Relatório mensal): lista de presença por turma para a secretaria, com resumo, assinaturas e envio por WhatsApp/e-mail. Não inclui motivos, telefones nem níveis (LGPD).
+- **Confirmação ao sair**: o botão voltar fecha janelas, volta para a Chamada e pergunta antes de sair.
+- **Aviso de data**: destaque quando a chamada aberta não é a de hoje.
 - **Funciona sem internet** depois da primeira abertura; dados ficam só no celular; cópia de segurança em arquivo.
 
 ## Como publicar (gratuito, GitHub Pages)
@@ -43,6 +46,7 @@ fora do celular — o que aumenta custo e risco à privacidade. Foi uma escolha 
 | `index.html` | App completo (HTML, CSS e JavaScript, sem dependências) |
 | `manifest.webmanifest` | Permite instalar como app |
 | `sw.js` | Service worker (funcionamento offline) |
+| `jspdf.umd.min.js`, `jspdf.plugin.autotable.min.js` | Bibliotecas jsPDF 2.5.2 e AutoTable 3.8.4 (MIT) para gerar o PDF sem internet |
 | `icon-192.png`, `icon-512.png` | Ícones |
 
 Modelo de dados (localStorage, chave `chamada-ativa-v1`): `turmas[]`, `alunas[]` (status: ativa / espera / inativa,

@@ -99,6 +99,11 @@ nav button.on{color:var(--pri);font-weight:700}
 #toast{position:fixed;left:16px;right:16px;bottom:calc(76px + env(safe-area-inset-bottom));z-index:30;margin:0 auto;max-width:600px;background:var(--ink);color:var(--bg);padding:14px 16px;border-radius:12px;font-size:16px;opacity:0;transform:translateY(10px);transition:.2s;pointer-events:none}
 #toast.on{opacity:1;transform:none}
 .note{background:var(--pri-soft);border-radius:12px;padding:12px;font-size:15px;margin-bottom:12px}
+.hist li{align-items:center}
+.tag{flex:none;white-space:nowrap;align-self:center}
+.aviso-data{display:flex;align-items:center;gap:10px;background:var(--just-bg);color:var(--just);border:1.5px solid var(--just);border-radius:12px;padding:10px 12px;margin:0 0 12px;font-size:15px;font-weight:600}
+.aviso-data .btn{margin-left:auto;flex:none}
+input.outro-dia{border-color:var(--just);background:var(--just-bg)}
 </style>
 </head>
 <body>
@@ -118,6 +123,7 @@ function vazio(){
     config:{
       limite:3,
       programa:'Chamada Ativa',
+      atividade:'', responsavel:'', local:'',
       msg:'Olá, {nome}! Tudo bem? Aqui é da {turma}. Registramos {faltas} faltas sem justificativa. Pelas regras do grupo, ao chegar a {limite} faltas sem justificativa a vaga é liberada para a lista de espera. Se aconteceu algo, me avise para justificarmos. Sentimos sua falta!'
     },
     turmas:[], alunas:[], chamadas:{}, avaliacoes:[]
@@ -143,6 +149,11 @@ const turma = id => S.turmas.find(t => t.id === id);
 const aluna = id => S.alunas.find(a => a.id === id);
 const NIVEIS = ['', 'Iniciante', 'Básico', 'Intermediário', 'Avançando', 'Avançado'];
 const STATUS = {ativa:'Ativa', espera:'Lista de espera', inativa:'Inativa'};
+const MESES = ['janeiro','fevereiro','março','abril','maio','junho','julho','agosto','setembro','outubro','novembro','dezembro'];
+const DIAS = ['domingo','segunda','terça','quarta','quinta','sexta','sábado'];
+const diaSemana = iso => DIAS[new Date(iso+'T12:00:00').getDay()];
+const nomeMes = ym => { const [y,m] = ym.split('-'); return MESES[Number(m)-1] + ' de ' + y; };
+const VERSAO = '1.1';
 
 function telWhats(t){
   let d = String(t||'').replace(/\D/g,'');
@@ -167,7 +178,8 @@ function registros(a){
 }
 function contagem(a){
   const c = {P:0,F:0,J:0};
-  for(const r of registros(a)){ if(!a.desde || r.data >= a.desde) c[r.s]++; }
+  // Somente as faltas sem justificativa são zeradas; presenças e justificativas contam o histórico todo.
+  for(const r of registros(a)){ if(r.s !== 'F' || !a.desde || r.data >= a.desde) c[r.s]++; }
   return c;
 }
 const faltas = a => contagem(a).F;
@@ -217,8 +229,9 @@ V.chamada = () => {
   lista.forEach(a => { if(reg[a.id]) n[reg[a.id].s]++; });
   const pend = lista.length - n.P - n.F - n.J;
   let h = `<div class="chips">${S.turmas.map(x => `<button class="chip ${x.id===t.id?'on':''}" data-a="escTurma" data-id="${x.id}">${esc(x.nome)}</button>`).join('')}</div>
-  <div class="row" style="margin-bottom:12px"><div class="grow"><input type="date" id="dataCh" value="${ui.data}" aria-label="Data da aula"></div>
+  <div class="row" style="margin-bottom:12px"><div class="grow"><input type="date" id="dataCh" class="${ui.data!==hoje()?'outro-dia':''}" value="${ui.data}" aria-label="Data da aula"></div>
   ${lista.length ? `<button class="btn sec" data-a="todasPresentes">Todas presentes</button>` : ''}</div>
+  ${ui.data !== hoje() ? `<div class="aviso-data" role="alert"><span>Atenção: chamada de ${diaSemana(ui.data)}, ${fmt(ui.data)}. Não é hoje.</span><button class="btn sm sec" data-a="irHoje">Ir para hoje</button></div>` : ''}
   ${t.horario ? `<p class="muted small" style="margin:-4px 0 12px">${esc(t.horario)}</p>` : ''}
   <div class="sum"><div><b>${n.P}</b>presentes</div><div><b>${n.F}</b>faltas</div><div><b>${n.J}</b>justif.</div><div><b>${pend}</b>a marcar</div></div>`;
   if(!lista.length) return h + vazioBox('Nenhuma aluna ativa nesta turma.', 'Cadastrar aluna', 'novaAluna');
@@ -306,6 +319,20 @@ V.mais = () => {
     return `<button class="list-item" data-a="editTurma" data-id="${t.id}"><div class="grow"><b>${esc(t.nome)}</b><span>${esc(t.horario||'Sem horário')} · ${n} aluna${n!==1?'s':''} ativa${n!==1?'s':''}${t.vagas?' de '+t.vagas+' vagas':''}</span></div></button>`; }).join('')}
   <button class="btn sec full" data-a="novaTurma">+ Nova turma</button>
 
+  <h2 style="margin-top:28px">Relatório mensal (PDF)</h2>
+  <div class="card">
+    <p class="small" style="margin-top:0">Gera a lista de presença do mês, por turma, para entregar à secretaria. Mostra só presença, falta e falta justificada — sem motivos, telefones ou níveis.</p>
+    <label class="f" for="relMes">Mês</label>
+    <select id="relMes">${mesesDisponiveis().map(m => `<option value="${m}" ${m===mesPadrao()?'selected':''}>${nomeMes(m)}</option>`).join('')}</select>
+    <label class="f" for="cfgAtiv">Atividade</label>
+    <input type="text" id="cfgAtiv" value="${esc(c.atividade)}" placeholder="Ex.: Pilates">
+    <label class="f" for="cfgResp">Responsável</label>
+    <input type="text" id="cfgResp" value="${esc(c.responsavel)}" placeholder="Nome completo da profissional">
+    <label class="f" for="cfgLocal">Local</label>
+    <input type="text" id="cfgLocal" value="${esc(c.local)}" placeholder="Ex.: Paróquia São José – salão">
+    <button class="btn full" style="margin-top:14px" data-a="gerarRelatorio">Gerar relatório em PDF</button>
+  </div>
+
   <h2 style="margin-top:28px">Regra de faltas</h2>
   <div class="card">
     <label class="f" for="cfgLimite">Alertar quando as faltas sem justificativa chegarem a</label>
@@ -336,7 +363,7 @@ V.mais = () => {
     <button class="btn ghost" data-a="exemplo">Carregar dados fictícios de exemplo</button>
     <button class="btn danger" data-a="apagarTudo">Apagar todos os dados deste celular</button>
   </div>
-  <p class="muted small" style="text-align:center;margin-top:24px">Chamada Ativa · projeto extensionista PUCPR · ADS</p>`;
+  <p class="muted small" style="text-align:center;margin-top:24px">Chamada Ativa v${VERSAO} · projeto extensionista PUCPR · ADS</p>`;
 };
 
 function vazioBox(msg, rotulo, acao){
@@ -352,7 +379,21 @@ function abrir(titulo, corpo){
   ov.addEventListener('click', e => { if(e.target === ov) fechar(); });
   document.body.appendChild(ov);
 }
-function fechar(){ const o = document.getElementById('ov'); if(o) o.remove(); }
+function fechar(){
+  const o = document.getElementById('ov'); if(o) o.remove();
+  if(ui.saida){ ui.saida = false; guard(); }
+}
+
+/* ================= Confirmação ao sair (botão voltar) ================= */
+function guard(){ try{ history.pushState({ca:Date.now()}, ''); }catch(e){} }
+window.addEventListener('popstate', () => {
+  const ov = document.getElementById('ov');
+  if(ov && !ui.saida){ ov.remove(); guard(); return; }          // voltar fecha a janela aberta
+  if(ui.tab !== 'chamada'){ ui.tab = 'chamada'; render(); guard(); return; } // voltar leva para a Chamada
+  abrir('Sair do app?', `<p style="margin-top:0">Seus dados continuam salvos neste celular.</p>
+    <div class="actions"><button class="btn" data-a="ficarApp">Continuar no app</button><button class="btn ghost" data-a="sairApp">Sair</button></div>`);
+  ui.saida = true;
+});
 
 function formAluna(a){
   const novo = !a; a = a || {nome:'', tel:'', turmaId:ui.turma || (S.turmas[0]||{}).id, status:'ativa', consent:false};
@@ -403,6 +444,46 @@ function formTurma(t){
 const A = {
   tab: d => { ui.tab = d.t; render(); scrollTo(0,0); },
   fechar: () => fechar(),
+  irHoje: () => { ui.data = hoje(); render(); },
+  ficarApp: () => fechar(),
+  sairApp: () => {
+    ui.saida = false;
+    const o = document.getElementById('ov'); if(o) o.remove();
+    try{ window.close(); }catch(e){}
+    setTimeout(() => toast('Toque em voltar mais uma vez para fechar o app.'), 300);
+  },
+  gerarRelatorio: async () => {
+    const v = id => document.getElementById(id).value.trim();
+    S.config.atividade = v('cfgAtiv'); S.config.responsavel = v('cfgResp'); S.config.local = v('cfgLocal'); salvar();
+    const mes = v('relMes');
+    toast('Gerando relatório...');
+    try{
+      const r = await relatorioPDF(mes);
+      if(!r) return toast('Nenhuma chamada registrada em ' + nomeMes(mes) + '.');
+      ultimoPDF = r;
+      const f = new File([r.blob], r.nome, {type:'application/pdf'});
+      const podeComp = !!(navigator.canShare && navigator.canShare({files:[f]}));
+      abrir('Relatório pronto', `<p style="margin-top:0"><b>${esc(cap(nomeMes(mes)))}</b> · ${r.turmas} turma${r.turmas>1?'s':''} · ${r.aulas} aula${r.aulas>1?'s':''} registradas.</p>
+        <p class="muted small">Arquivo: ${esc(r.nome)}</p>
+        <div class="actions">
+          ${podeComp ? '<button class="btn wa" data-a="compartilharPDF">Enviar (WhatsApp, e-mail…)</button>' : ''}
+          <button class="btn ${podeComp?'ghost':''}" data-a="baixarPDF">Baixar PDF</button>
+        </div>`);
+    }catch(e){ console.error(e); toast('Não foi possível gerar o PDF. Abra o app com internet uma vez e tente de novo.'); }
+  },
+  compartilharPDF: () => {
+    if(!ultimoPDF) return;
+    const f = new File([ultimoPDF.blob], ultimoPDF.nome, {type:'application/pdf'});
+    navigator.share({files:[f], title:ultimoPDF.nome}).catch(() => {});
+  },
+  baixarPDF: () => {
+    if(!ultimoPDF) return;
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(ultimoPDF.blob); a.download = ultimoPDF.nome;
+    document.body.appendChild(a); a.click(); a.remove();
+    setTimeout(() => URL.revokeObjectURL(a.href), 4000);
+    toast('PDF salvo na pasta Downloads.');
+  },
   escTurma: d => { ui.turma = d.id; render(); },
   evTurma: d => { ui.evTurma = d.id; render(); },
   seg: d => { ui.seg = d.s; render(); },
@@ -563,6 +644,123 @@ document.getElementById('arquivo').addEventListener('change', e => {
   r.readAsText(f);
 });
 
+/* ================= Relatório mensal em PDF ================= */
+let ultimoPDF = null;
+const cap = s => s.charAt(0).toUpperCase() + s.slice(1);
+function mesesDisponiveis(){
+  const h = hoje(), ant = addDias(h.slice(0,8) + '01', -1).slice(0,7);
+  const s = new Set([h.slice(0,7), ant]);
+  for(const k in S.chamadas) s.add(k.split('|')[1].slice(0,7));
+  return [...s].sort().reverse();
+}
+function mesPadrao(){ // na primeira semana do mês, sugere o mês anterior (fechamento)
+  const h = hoje();
+  return Number(h.slice(8)) <= 7 ? addDias(h.slice(0,8) + '01', -1).slice(0,7) : h.slice(0,7);
+}
+function carregarScript(src){
+  return new Promise((ok, erro) => { const s = document.createElement('script'); s.src = src; s.onload = ok; s.onerror = () => erro(new Error(src)); document.head.appendChild(s); });
+}
+async function libsPDF(){
+  if(!(window.jspdf && window.jspdf.jsPDF)) await carregarScript('jspdf.umd.min.js');
+  if(!window.jspdf.jsPDF.API.autoTable) await carregarScript('jspdf.plugin.autotable.min.js');
+  return window.jspdf.jsPDF;
+}
+function dadosTurma(t, mes){
+  const pre = t.id + '|';
+  const datas = Object.keys(S.chamadas).filter(k => k.startsWith(pre) && k.slice(pre.length).startsWith(mes)).map(k => k.slice(pre.length)).sort();
+  const ids = new Set();
+  datas.forEach(d => Object.keys(S.chamadas[pre + d]).forEach(id => ids.add(id)));
+  S.alunas.filter(a => a.status === 'ativa' && a.turmaId === t.id).forEach(a => ids.add(a.id));
+  const linhas = [...ids].map(aluna).filter(Boolean).sort(porNome).map(a => {
+    const marc = datas.map(d => (S.chamadas[pre + d][a.id] || {}).s || '');
+    const n = {P:0, F:0, J:0}; marc.forEach(s => { if(s) n[s]++; });
+    const tot = n.P + n.F + n.J;
+    const obs = a.status === 'inativa' ? 'Vaga liberada' : a.status === 'espera' ? 'Lista de espera' : a.turmaId !== t.id ? 'Mudou de turma' : '';
+    return {nome:a.nome, marc, n, freq: tot ? Math.round(n.P / tot * 100) : null, obs};
+  });
+  const tot = linhas.reduce((s, l) => { s.P += l.n.P; s.F += l.n.F; s.J += l.n.J; return s; }, {P:0, F:0, J:0});
+  const soma = tot.P + tot.F + tot.J;
+  return {t, datas, linhas, tot, freq: soma ? Math.round(tot.P / soma * 100) : null};
+}
+async function relatorioPDF(mes){
+  const turmas = S.turmas.slice().sort((a,b) => a.nome.localeCompare(b.nome,'pt-BR')).map(t => dadosTurma(t, mes)).filter(d => d.datas.length);
+  if(!turmas.length) return null;
+  const jsPDF = await libsPDF();
+  const c = S.config, doc = new jsPDF({orientation:'landscape', unit:'mm', format:'a4'});
+  const W = doc.internal.pageSize.getWidth(), H = doc.internal.pageSize.getHeight(), M = 12;
+  const VERDE = [15,110,100], CINZA = [90,100,98];
+  const titulo = 'Relatório mensal de frequência' + (c.atividade ? ' - ' + c.atividade : '');
+  const sub = [cap(nomeMes(mes)), c.local && 'Local: ' + c.local, c.responsavel && 'Responsável: ' + c.responsavel].filter(Boolean).join('     |     ');
+  const cab = () => {
+    doc.setFillColor(...VERDE); doc.rect(0, 0, W, 20, 'F');
+    doc.setTextColor(255); doc.setFont('helvetica','bold'); doc.setFontSize(14); doc.text(titulo, M, 9.5);
+    doc.setFont('helvetica','normal'); doc.setFontSize(9.5); doc.text(sub, M, 16);
+    doc.setTextColor(30);
+  };
+  const pct = v => v === null ? '-' : v + '%';
+  const legenda = 'P = presente     F = falta sem justificativa     J = falta justificada     - = sem registro (aluna ainda não estava na turma ou saiu)';
+
+  // Página 1: resumo do mês
+  cab();
+  doc.setFont('helvetica','bold'); doc.setFontSize(12); doc.text('Resumo do mês', M, 30);
+  const total = turmas.reduce((s, d) => { s.al += d.linhas.length; s.au += d.datas.length; s.P += d.tot.P; s.F += d.tot.F; s.J += d.tot.J; return s; }, {al:0, au:0, P:0, F:0, J:0});
+  const somaT = total.P + total.F + total.J;
+  doc.autoTable({
+    startY: 34, margin: {left:M, right:M, top:26},
+    head: [['Turma', 'Dias e horário', 'Alunas', 'Aulas no mês', 'Presenças', 'Faltas', 'Justificadas', 'Frequência']],
+    body: turmas.map(d => [d.t.nome, d.t.horario || '-', d.linhas.length, d.datas.length, d.tot.P, d.tot.F, d.tot.J, pct(d.freq)]),
+    foot: [['Total', '', total.al, total.au, total.P, total.F, total.J, pct(somaT ? Math.round(total.P / somaT * 100) : null)]],
+    theme: 'grid', styles: {fontSize:10, cellPadding:2.2, lineColor:[210,205,195]},
+    headStyles: {fillColor:VERDE, textColor:255}, footStyles: {fillColor:[223,240,237], textColor:30, fontStyle:'bold'},
+    columnStyles: {2:{halign:'center'}, 3:{halign:'center'}, 4:{halign:'center'}, 5:{halign:'center'}, 6:{halign:'center'}, 7:{halign:'center', fontStyle:'bold'}},
+    didDrawPage: cab
+  });
+  doc.setFontSize(9); doc.setTextColor(...CINZA);
+  doc.text('Frequência = presenças ÷ aulas registradas da aluna. As páginas seguintes trazem a lista de presença de cada turma.', M, doc.lastAutoTable.finalY + 7);
+
+  // Uma página por turma
+  for(const d of turmas){
+    doc.addPage(); cab();
+    doc.setTextColor(30); doc.setFont('helvetica','bold'); doc.setFontSize(12);
+    doc.text(d.t.nome + (d.t.horario ? ' - ' + d.t.horario : ''), M, 29);
+    doc.setFont('helvetica','normal'); doc.setFontSize(9.5); doc.setTextColor(...CINZA);
+    doc.text(`Aulas registradas: ${d.datas.length}     |     Alunas: ${d.linhas.length}     |     Frequência média da turma: ${pct(d.freq)}`, M, 34.5);
+    const nD = d.datas.length;
+    doc.autoTable({
+      startY: 38, margin: {left:M, right:M, top:26, bottom:16},
+      head: [['Nº', 'Aluna', ...d.datas.map(x => x.slice(8,10) + '/' + x.slice(5,7) + '\n' + diaSemana(x).slice(0,3)), 'P', 'F', 'J', 'Freq.', 'Observação']],
+      body: d.linhas.map((l, i) => [i+1, l.nome, ...l.marc.map(s => s || '-'), l.n.P, l.n.F, l.n.J, pct(l.freq), l.obs]),
+      theme: 'grid', styles: {fontSize:9, cellPadding:1.8, halign:'center', valign:'middle', lineColor:[210,205,195]},
+      headStyles: {fillColor:VERDE, textColor:255, fontSize:8.5},
+      columnStyles: {0:{cellWidth:9}, 1:{halign:'left', cellWidth:62}, [nD+5]:{fontStyle:'bold'}, [nD+6]:{halign:'left', cellWidth:30, fontSize:8}},
+      didParseCell: h => {
+        if(h.section !== 'body' || h.column.index < 2 || h.column.index >= 2 + nD) return;
+        if(h.cell.raw === 'F'){ h.cell.styles.fillColor = [253,226,212]; h.cell.styles.textColor = [170,60,15]; h.cell.styles.fontStyle = 'bold'; }
+        else if(h.cell.raw === 'J'){ h.cell.styles.fillColor = [255,241,191]; h.cell.styles.textColor = [110,85,0]; }
+        else if(h.cell.raw === '-'){ h.cell.styles.textColor = [170,170,170]; }
+      },
+      didDrawPage: cab
+    });
+    let y = doc.lastAutoTable.finalY + 6;
+    doc.setFontSize(8.5); doc.setTextColor(...CINZA); doc.text(legenda, M, y);
+    y += 22;
+    if(y > H - 18){ doc.addPage(); cab(); y = 50; }
+    doc.setDrawColor(120); doc.setTextColor(30); doc.setFontSize(9.5);
+    doc.line(M, y, M + 95, y); doc.text((c.responsavel || 'Responsável') + ' - responsável pelas turmas', M, y + 5);
+    doc.line(W - M - 95, y, W - M, y); doc.text('Recebido pela secretaria em ____/____/________', W - M - 95, y + 5);
+  }
+
+  // Rodapé em todas as páginas
+  const agora = new Date(), hh = String(agora.getHours()).padStart(2,'0') + ':' + String(agora.getMinutes()).padStart(2,'0');
+  const n = doc.getNumberOfPages();
+  for(let i = 1; i <= n; i++){
+    doc.setPage(i); doc.setFontSize(8); doc.setTextColor(...CINZA);
+    doc.text(`Gerado pelo app Chamada Ativa em ${fmt(hoje())} às ${hh}`, M, H - 6);
+    doc.text(`Página ${i} de ${n}`, W - M, H - 6, {align:'right'});
+  }
+  return {blob: doc.output('blob'), nome: `frequencia-${mes}.pdf`, turmas: turmas.length, aulas: total.au};
+}
+
 /* ================= Renderização ================= */
 function render(){
   const nAl = emAlerta().length;
@@ -612,6 +810,7 @@ function exemplo(){
 }
 
 render();
+guard();
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   navigator.serviceWorker.register('sw.js').catch(() => {});
 }
