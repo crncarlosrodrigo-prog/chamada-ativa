@@ -1,0 +1,620 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#0f6e64">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Chamada Ativa">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icon-192.png">
+<link rel="apple-touch-icon" href="icon-192.png">
+<title>Chamada Ativa</title>
+<style>
+:root{
+  --bg:#f5f3ee;--card:#ffffff;--ink:#1c2a28;--muted:#5b6a67;--line:#e2ddd2;
+  --pri:#0f6e64;--pri-ink:#ffffff;--pri-soft:#dff0ed;
+  --ok:#1b7f45;--ok-bg:#e2f4e9;--bad:#b9400e;--bad-bg:#fde9dd;--just:#7a5d00;--just-bg:#fff1bf;
+  --r:16px;
+}
+@media (prefers-color-scheme:dark){:root{
+  --bg:#111716;--card:#1a2220;--ink:#edf3f1;--muted:#9eafab;--line:#2b3532;
+  --pri:#3fb3a3;--pri-ink:#05251f;--pri-soft:#173a35;
+  --ok:#62d497;--ok-bg:#163424;--bad:#ff9d6b;--bad-bg:#3a2216;--just:#ffd76a;--just-bg:#393115;
+}}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;background:var(--bg);color:var(--ink);font:18px/1.4 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+button,input,select,textarea{font:inherit;color:inherit}
+header{position:sticky;top:0;z-index:5;background:var(--pri);color:var(--pri-ink);padding:12px 16px;padding-top:calc(12px + env(safe-area-inset-top))}
+header h1{margin:0;font-size:20px;letter-spacing:.2px}
+header small{display:block;opacity:.85;font-size:14px}
+main{padding:16px 16px 120px;max-width:640px;margin:0 auto}
+h2{font-size:22px;margin:4px 0 12px}
+h3{font-size:18px;margin:18px 0 8px}
+.muted{color:var(--muted)}
+.small{font-size:15px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:var(--r);padding:14px;margin-bottom:12px}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;border:0;border-radius:12px;padding:12px 16px;min-height:48px;background:var(--pri);color:var(--pri-ink);font-weight:650;cursor:pointer;text-decoration:none}
+.btn.sec{background:var(--pri-soft);color:var(--pri)}
+.btn.ghost{background:transparent;color:var(--pri);border:1.5px solid var(--line)}
+.btn.danger{background:var(--bad-bg);color:var(--bad)}
+.btn.wa{background:#1f9d55;color:#fff}
+.btn.full{width:100%}
+.btn.sm{min-height:40px;padding:8px 12px;font-size:16px}
+.row{display:flex;gap:10px;align-items:center}
+.row.wrap{flex-wrap:wrap}
+.grow{flex:1;min-width:0}
+.chips{display:flex;gap:8px;overflow-x:auto;padding-bottom:4px;margin-bottom:12px;scrollbar-width:none}
+.chip{flex:none;border:1.5px solid var(--line);background:var(--card);border-radius:999px;padding:8px 14px;min-height:44px;cursor:pointer}
+.chip.on{background:var(--pri);color:var(--pri-ink);border-color:var(--pri);font-weight:650}
+label.f{display:block;font-size:15px;color:var(--muted);margin:12px 0 4px}
+input[type=text],input[type=tel],input[type=date],input[type=number],select,textarea{width:100%;border:1.5px solid var(--line);background:var(--card);border-radius:12px;padding:12px;min-height:48px}
+textarea{min-height:90px;resize:vertical}
+input:focus,select:focus,textarea:focus{outline:2px solid var(--pri);outline-offset:1px}
+.check{display:flex;gap:12px;align-items:flex-start;margin-top:14px;font-size:16px}
+.check input{width:26px;height:26px;flex:none;accent-color:var(--pri)}
+.sum{display:flex;gap:8px;margin:0 0 12px}
+.sum div{flex:1;background:var(--card);border:1px solid var(--line);border-radius:12px;padding:8px;text-align:center;font-size:14px;color:var(--muted)}
+.sum b{display:block;font-size:22px;color:var(--ink)}
+.al{background:var(--card);border:1px solid var(--line);border-radius:var(--r);padding:12px;margin-bottom:10px}
+.al .nm{font-weight:650;font-size:19px}
+.al .nm small{display:block;font-weight:400;font-size:14px;color:var(--muted)}
+.tri{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-top:10px}
+.tri button{border:1.5px solid var(--line);background:var(--card);border-radius:12px;min-height:52px;font-size:16px;font-weight:600;cursor:pointer;color:var(--muted)}
+.tri .P.on{background:var(--ok-bg);border-color:var(--ok);color:var(--ok)}
+.tri .F.on{background:var(--bad-bg);border-color:var(--bad);color:var(--bad)}
+.tri .J.on{background:var(--just-bg);border-color:var(--just);color:var(--just)}
+.motivo{margin-top:8px}
+.tag{display:inline-block;border-radius:999px;padding:2px 10px;font-size:13px;font-weight:650}
+.tag.bad{background:var(--bad-bg);color:var(--bad)}
+.tag.ok{background:var(--ok-bg);color:var(--ok)}
+.tag.just{background:var(--just-bg);color:var(--just)}
+.tag.pri{background:var(--pri-soft);color:var(--pri)}
+.lvl{display:grid;grid-template-columns:repeat(5,1fr);gap:6px;margin-top:10px}
+.lvl button{border:1.5px solid var(--line);background:var(--card);border-radius:10px;min-height:48px;font-size:18px;font-weight:700;cursor:pointer;color:var(--muted)}
+.lvl button.on{background:var(--pri);border-color:var(--pri);color:var(--pri-ink)}
+.lvl button.past{background:var(--pri-soft);border-color:var(--pri-soft);color:var(--pri)}
+.list-item{display:flex;align-items:center;gap:10px;width:100%;text-align:left;background:var(--card);border:1px solid var(--line);border-radius:var(--r);padding:12px 14px;margin-bottom:8px;cursor:pointer;min-height:64px}
+.list-item .grow b{display:block;font-size:18px}
+.list-item .grow span{font-size:14px;color:var(--muted)}
+.empty{text-align:center;padding:36px 12px;color:var(--muted)}
+.empty .btn{margin-top:14px}
+.seg{display:grid;grid-template-columns:repeat(3,1fr);background:var(--card);border:1px solid var(--line);border-radius:12px;padding:4px;margin-bottom:12px}
+.seg button{border:0;background:none;border-radius:9px;min-height:42px;font-size:15px;cursor:pointer;color:var(--muted)}
+.seg button.on{background:var(--pri);color:var(--pri-ink);font-weight:650}
+.hist{list-style:none;margin:0;padding:0}
+.hist li{display:flex;justify-content:space-between;gap:10px;padding:8px 0;border-bottom:1px solid var(--line);font-size:16px}
+.hist li:last-child{border-bottom:0}
+nav{position:fixed;bottom:0;left:0;right:0;z-index:6;background:var(--card);border-top:1px solid var(--line);display:flex;padding-bottom:env(safe-area-inset-bottom)}
+nav button{flex:1;border:0;background:none;color:var(--muted);padding:9px 2px 8px;font-size:12.5px;display:flex;flex-direction:column;align-items:center;gap:3px;position:relative;cursor:pointer;min-height:60px}
+nav button svg{width:24px;height:24px}
+nav button.on{color:var(--pri);font-weight:700}
+.badge{position:absolute;top:4px;left:calc(50% + 6px);background:var(--bad);color:#fff;border-radius:999px;font-size:11px;font-weight:700;min-width:19px;height:19px;line-height:19px;padding:0 5px;text-align:center}
+.ov{position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:20;display:flex;align-items:flex-end;justify-content:center}
+.sheet{background:var(--bg);width:100%;max-width:640px;max-height:92vh;overflow:auto;border-radius:20px 20px 0 0;padding:18px 16px calc(20px + env(safe-area-inset-bottom))}
+.sheet .top{display:flex;justify-content:space-between;align-items:center;margin-bottom:6px}
+.sheet .top h2{margin:0}
+.x{border:0;background:var(--card);border-radius:999px;width:44px;height:44px;font-size:22px;cursor:pointer;color:var(--muted)}
+.actions{display:grid;gap:10px;margin-top:16px}
+#toast{position:fixed;left:16px;right:16px;bottom:calc(76px + env(safe-area-inset-bottom));z-index:30;margin:0 auto;max-width:600px;background:var(--ink);color:var(--bg);padding:14px 16px;border-radius:12px;font-size:16px;opacity:0;transform:translateY(10px);transition:.2s;pointer-events:none}
+#toast.on{opacity:1;transform:none}
+.note{background:var(--pri-soft);border-radius:12px;padding:12px;font-size:15px;margin-bottom:12px}
+</style>
+</head>
+<body>
+<header><h1 id="titulo">Chamada Ativa</h1><small id="subtitulo">Presença e evolução das alunas</small></header>
+<main id="main"></main>
+<nav id="nav"></nav>
+<div id="toast" role="status" aria-live="polite"></div>
+<input type="file" id="arquivo" accept="application/json,.json" hidden>
+
+<script>
+'use strict';
+/* ================= Armazenamento (somente no aparelho) ================= */
+const KEY = 'chamada-ativa-v1';
+let memoria = null;
+function vazio(){
+  return {
+    config:{
+      limite:3,
+      programa:'Chamada Ativa',
+      msg:'Olá, {nome}! Tudo bem? Aqui é da {turma}. Registramos {faltas} faltas sem justificativa. Pelas regras do grupo, ao chegar a {limite} faltas sem justificativa a vaga é liberada para a lista de espera. Se aconteceu algo, me avise para justificarmos. Sentimos sua falta!'
+    },
+    turmas:[], alunas:[], chamadas:{}, avaliacoes:[]
+  };
+}
+function carregar(){
+  try{ const r = localStorage.getItem(KEY); if(r){ const d = JSON.parse(r); return Object.assign(vazio(), d, {config:Object.assign(vazio().config, d.config||{})}); } }catch(e){}
+  return memoria || vazio();
+}
+function salvar(){
+  try{ localStorage.setItem(KEY, JSON.stringify(S)); }catch(e){ memoria = S; }
+}
+let S = carregar();
+
+/* ================= Utilidades ================= */
+const uid = () => Math.random().toString(36).slice(2,9) + Date.now().toString(36).slice(-4);
+const hoje = () => { const d = new Date(); d.setMinutes(d.getMinutes() - d.getTimezoneOffset()); return d.toISOString().slice(0,10); };
+const addDias = (iso,n) => { const d = new Date(iso+'T12:00:00'); d.setDate(d.getDate()+n); return d.toISOString().slice(0,10); };
+const fmt = iso => iso ? iso.split('-').reverse().join('/') : '';
+const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const porNome = (a,b) => a.nome.localeCompare(b.nome,'pt-BR');
+const turma = id => S.turmas.find(t => t.id === id);
+const aluna = id => S.alunas.find(a => a.id === id);
+const NIVEIS = ['', 'Iniciante', 'Básico', 'Intermediário', 'Avançando', 'Avançado'];
+const STATUS = {ativa:'Ativa', espera:'Lista de espera', inativa:'Inativa'};
+
+function telWhats(t){
+  let d = String(t||'').replace(/\D/g,'');
+  if(!d) return '';
+  if(d.length <= 11) d = '55' + d.replace(/^0+/,'');
+  return d;
+}
+function toast(msg){
+  const el = document.getElementById('toast');
+  el.textContent = msg; el.classList.add('on');
+  clearTimeout(toast.t); toast.t = setTimeout(() => el.classList.remove('on'), 2600);
+}
+
+/* ================= Regras de negócio ================= */
+function registros(a){
+  const out = [];
+  for(const k in S.chamadas){
+    const r = S.chamadas[k][a.id];
+    if(r){ const [tid, data] = k.split('|'); out.push({tid, data, s:r.s, m:r.m||''}); }
+  }
+  return out.sort((x,y) => y.data.localeCompare(x.data));
+}
+function contagem(a){
+  const c = {P:0,F:0,J:0};
+  for(const r of registros(a)){ if(!a.desde || r.data >= a.desde) c[r.s]++; }
+  return c;
+}
+const faltas = a => contagem(a).F;
+const limite = () => Math.max(1, Number(S.config.limite) || 3);
+const emAlerta = () => S.alunas.filter(a => a.status === 'ativa' && faltas(a) >= limite()).sort(porNome);
+const quaseNoLimite = () => S.alunas.filter(a => a.status === 'ativa' && faltas(a) === limite()-1 && limite() > 1).sort(porNome);
+function nivelAtual(a){
+  const av = S.avaliacoes.filter(v => v.alunaId === a.id).sort((x,y) => y.data.localeCompare(x.data));
+  return av[0] || null;
+}
+function mensagem(a){
+  const t = turma(a.turmaId);
+  return S.config.msg
+    .replaceAll('{nome}', a.nome.split(' ')[0])
+    .replaceAll('{turma}', t ? t.nome : 'turma')
+    .replaceAll('{faltas}', faltas(a))
+    .replaceAll('{limite}', limite());
+}
+function linkWhats(a){
+  const t = telWhats(a.tel);
+  return t ? 'https://wa.me/' + t + '?text=' + encodeURIComponent(mensagem(a)) : '';
+}
+
+/* ================= Estado da interface ================= */
+const ui = { tab:'chamada', turma:null, data:hoje(), seg:'ativa', busca:'', evTurma:null };
+
+/* ================= Ícones ================= */
+const IC = {
+  chamada:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="3" width="16" height="18" rx="2"/><path d="m8.5 12 2.5 2.5 4.5-5"/></svg>',
+  alunas:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="9" cy="8" r="3.5"/><path d="M2.5 20c.8-3.6 3.4-5.5 6.5-5.5s5.7 1.9 6.5 5.5"/><circle cx="17.5" cy="9" r="2.5"/><path d="M17 14.5c2.4.2 4 1.8 4.5 4.5"/></svg>',
+  alertas:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9a6 6 0 1 1 12 0c0 6 2.5 7.5 2.5 7.5h-17S6 15 6 9"/><path d="M10 20a2.2 2.2 0 0 0 4 0"/></svg>',
+  evolucao:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20V14M10 20V10M16 20V6M22 20H2"/></svg>',
+  mais:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="5" cy="12" r="1.6"/><circle cx="12" cy="12" r="1.6"/><circle cx="19" cy="12" r="1.6"/></svg>'
+};
+const ABAS = [['chamada','Chamada'],['alunas','Alunas'],['alertas','Alertas'],['evolucao','Evolução'],['mais','Mais']];
+
+/* ================= Telas ================= */
+const V = {};
+
+V.chamada = () => {
+  if(!S.turmas.length) return vazioBox('Nenhuma turma cadastrada ainda.', 'Cadastrar turma', 'novaTurma');
+  if(!turma(ui.turma)) ui.turma = S.turmas[0].id;
+  const t = turma(ui.turma);
+  const lista = S.alunas.filter(a => a.status === 'ativa' && a.turmaId === t.id).sort(porNome);
+  const reg = S.chamadas[t.id + '|' + ui.data] || {};
+  const n = {P:0,F:0,J:0};
+  lista.forEach(a => { if(reg[a.id]) n[reg[a.id].s]++; });
+  const pend = lista.length - n.P - n.F - n.J;
+  let h = `<div class="chips">${S.turmas.map(x => `<button class="chip ${x.id===t.id?'on':''}" data-a="escTurma" data-id="${x.id}">${esc(x.nome)}</button>`).join('')}</div>
+  <div class="row" style="margin-bottom:12px"><div class="grow"><input type="date" id="dataCh" value="${ui.data}" aria-label="Data da aula"></div>
+  ${lista.length ? `<button class="btn sec" data-a="todasPresentes">Todas presentes</button>` : ''}</div>
+  ${t.horario ? `<p class="muted small" style="margin:-4px 0 12px">${esc(t.horario)}</p>` : ''}
+  <div class="sum"><div><b>${n.P}</b>presentes</div><div><b>${n.F}</b>faltas</div><div><b>${n.J}</b>justif.</div><div><b>${pend}</b>a marcar</div></div>`;
+  if(!lista.length) return h + vazioBox('Nenhuma aluna ativa nesta turma.', 'Cadastrar aluna', 'novaAluna');
+  h += lista.map(a => {
+    const r = reg[a.id], f = faltas(a), lim = limite();
+    const aviso = f >= lim ? `<span class="tag bad">${f} faltas · limite</span>` : f > 0 ? `<span class="tag just">${f} falta${f>1?'s':''} s/ just.</span>` : '';
+    return `<div class="al"><div class="row"><div class="nm grow">${esc(a.nome)}</div>${aviso}</div>
+      <div class="tri">
+        <button class="P ${r&&r.s==='P'?'on':''}" data-a="marcar" data-id="${a.id}" data-s="P">Presente</button>
+        <button class="F ${r&&r.s==='F'?'on':''}" data-a="marcar" data-id="${a.id}" data-s="F">Faltou</button>
+        <button class="J ${r&&r.s==='J'?'on':''}" data-a="marcar" data-id="${a.id}" data-s="J">Justificou</button>
+      </div>
+      ${r && r.s==='J' ? `<input type="text" class="motivo" data-motivo="${a.id}" value="${esc(r.m)}" placeholder="Motivo da justificativa (opcional)">` : ''}
+    </div>`;
+  }).join('');
+  return h + `<p class="muted small" style="text-align:center">Salvo automaticamente a cada toque.</p>`;
+};
+
+V.alunas = () => {
+  const c = {ativa:0, espera:0, inativa:0};
+  S.alunas.forEach(a => c[a.status]++);
+  return `<div class="row" style="margin-bottom:12px"><h2 class="grow" style="margin:0">Alunas</h2><button class="btn" data-a="novaAluna">+ Nova</button></div>
+  <div class="seg">${['ativa','espera','inativa'].map(s => `<button class="${ui.seg===s?'on':''}" data-a="seg" data-s="${s}">${{ativa:'Ativas',espera:'Espera',inativa:'Inativas'}[s]} (${c[s]})</button>`).join('')}</div>
+  <input type="text" id="busca" placeholder="Buscar pelo nome" value="${esc(ui.busca)}" style="margin-bottom:12px">
+  <div id="listaAlunas">${listaAlunas()}</div>`;
+};
+function listaAlunas(){
+  const q = ui.busca.trim().toLowerCase();
+  let l = S.alunas.filter(a => a.status === ui.seg && (!q || a.nome.toLowerCase().includes(q)));
+  l = ui.seg === 'espera' ? l.sort((a,b) => (a.entrada||'').localeCompare(b.entrada||'')) : l.sort(porNome);
+  if(!l.length) return `<div class="empty">${ui.seg==='espera' ? 'Ninguém na lista de espera.' : 'Nenhuma aluna aqui.'}</div>`;
+  return l.map((a,i) => {
+    const t = turma(a.turmaId), nv = nivelAtual(a), f = faltas(a);
+    const info = ui.seg === 'espera'
+      ? `${i+1}º da fila · desde ${fmt(a.entrada)}${t ? ' · prefere ' + esc(t.nome) : ''}`
+      : `${t ? esc(t.nome) : 'Sem turma'}${nv ? ' · Nível ' + nv.nivel : ''}`;
+    const tag = ui.seg === 'ativa' && f ? `<span class="tag ${f>=limite()?'bad':'just'}">${f} falta${f>1?'s':''}</span>` : '';
+    return `<button class="list-item" data-a="verAluna" data-id="${a.id}"><div class="grow"><b>${esc(a.nome)}</b><span>${info}</span></div>${tag}</button>`;
+  }).join('');
+}
+
+V.alertas = () => {
+  const al = emAlerta(), qs = quaseNoLimite(), lim = limite();
+  let h = `<h2>Alertas de faltas</h2><p class="muted small" style="margin-top:-6px">Regra atual: alerta ao chegar a <b>${lim}</b> falta${lim>1?'s':''} sem justificativa. <a href="#" data-a="tab" data-t="mais" style="color:var(--pri)">Alterar</a></p>`;
+  if(!al.length && !qs.length) return h + `<div class="empty">Nenhuma aluna perto do limite de faltas.</div>`;
+  if(al.length){
+    h += `<h3>Atingiram o limite (${al.length})</h3>` + al.map(a => cartaoAlerta(a, true)).join('');
+  }
+  if(qs.length){
+    h += `<h3>A 1 falta do limite (${qs.length})</h3>` + qs.map(a => cartaoAlerta(a, false)).join('');
+  }
+  return h;
+};
+function cartaoAlerta(a, limiteAtingido){
+  const t = turma(a.turmaId), link = linkWhats(a);
+  const ult = registros(a).filter(r => r.s === 'F' && (!a.desde || r.data >= a.desde)).slice(0,4).map(r => fmt(r.data)).join(', ');
+  return `<div class="al"><div class="row"><div class="nm grow">${esc(a.nome)}<small>${t?esc(t.nome):''} · faltas em ${ult}</small></div><span class="tag ${limiteAtingido?'bad':'just'}">${faltas(a)}</span></div>
+    <div class="actions" style="margin-top:10px">
+      ${link ? `<a class="btn wa" href="${link}" target="_blank" rel="noopener" data-a="avisou" data-id="${a.id}">Avisar no WhatsApp</a>` : `<p class="muted small" style="margin:0">Sem celular cadastrado.</p>`}
+      ${a.avisadaEm ? `<p class="muted small" style="margin:0">Aviso aberto em ${fmt(a.avisadaEm)}.</p>` : ''}
+      ${limiteAtingido ? `<button class="btn danger" data-a="liberarVaga" data-id="${a.id}">Liberar vaga para a lista de espera</button>` : ''}
+    </div></div>`;
+}
+
+V.evolucao = () => {
+  if(!S.turmas.length) return vazioBox('Cadastre uma turma primeiro.', 'Cadastrar turma', 'novaTurma');
+  if(ui.evTurma !== 'todas' && !turma(ui.evTurma)) ui.evTurma = S.turmas[0].id;
+  const lista = S.alunas.filter(a => a.status === 'ativa' && (ui.evTurma === 'todas' || a.turmaId === ui.evTurma)).sort(porNome);
+  const d = hoje();
+  let h = `<h2>Evolução</h2><p class="muted small" style="margin-top:-6px">Toque no nível para registrar a avaliação de hoje (${fmt(d)}). 1 = iniciante · 5 = avançado.</p>
+  <div class="chips">${S.turmas.map(x => `<button class="chip ${x.id===ui.evTurma?'on':''}" data-a="evTurma" data-id="${x.id}">${esc(x.nome)}</button>`).join('')}<button class="chip ${ui.evTurma==='todas'?'on':''}" data-a="evTurma" data-id="todas">Todas</button></div>`;
+  if(!lista.length) return h + `<div class="empty">Nenhuma aluna ativa nesta turma.</div>`;
+  return h + lista.map(a => {
+    const nv = nivelAtual(a), deHoje = nv && nv.data === d;
+    const sub = nv ? `Nível ${nv.nivel} · ${NIVEIS[nv.nivel]} · ${deHoje ? 'avaliada hoje' : 'em ' + fmt(nv.data)}` : 'Ainda sem avaliação';
+    return `<div class="al"><div class="row"><div class="nm grow">${esc(a.nome)}<small>${sub}</small></div><button class="btn ghost sm" data-a="obs" data-id="${a.id}">Anotar</button></div>
+      <div class="lvl">${[1,2,3,4,5].map(n => `<button class="${nv && nv.nivel===n ? (deHoje?'on':'past') : ''}" data-a="nivel" data-id="${a.id}" data-n="${n}" aria-label="Nível ${n}">${n}</button>`).join('')}</div></div>`;
+  }).join('');
+};
+
+V.mais = () => {
+  const c = S.config;
+  return `<h2>Turmas</h2>
+  ${S.turmas.map(t => { const n = S.alunas.filter(a => a.turmaId===t.id && a.status==='ativa').length;
+    return `<button class="list-item" data-a="editTurma" data-id="${t.id}"><div class="grow"><b>${esc(t.nome)}</b><span>${esc(t.horario||'Sem horário')} · ${n} aluna${n!==1?'s':''} ativa${n!==1?'s':''}${t.vagas?' de '+t.vagas+' vagas':''}</span></div></button>`; }).join('')}
+  <button class="btn sec full" data-a="novaTurma">+ Nova turma</button>
+
+  <h2 style="margin-top:28px">Regra de faltas</h2>
+  <div class="card">
+    <label class="f" for="cfgLimite">Alertar quando as faltas sem justificativa chegarem a</label>
+    <input type="number" id="cfgLimite" min="1" max="20" value="${limite()}">
+    <label class="f" for="cfgMsg">Mensagem de aviso no WhatsApp</label>
+    <textarea id="cfgMsg">${esc(c.msg)}</textarea>
+    <p class="muted small">Use {nome}, {turma}, {faltas} e {limite} — o app troca pelos dados da aluna.</p>
+    <button class="btn full" data-a="salvarCfg">Salvar regra</button>
+  </div>
+
+  <h2 style="margin-top:28px">Cópia de segurança</h2>
+  <div class="card">
+    <p class="small" style="margin-top:0">Os dados ficam <b>somente neste celular</b>. Faça uma cópia toda semana e guarde em local seguro (ex.: seu Google Drive).</p>
+    <div class="actions" style="margin-top:8px">
+      <button class="btn" data-a="exportar">Baixar cópia de segurança</button>
+      <button class="btn ghost" data-a="importar">Restaurar a partir de uma cópia</button>
+    </div>
+  </div>
+
+  <h2 style="margin-top:28px">Privacidade (LGPD)</h2>
+  <div class="card small">
+    <p style="margin-top:0">O app guarda apenas o necessário: nome, celular, turma, presenças e nível. Nada é enviado para servidores. Cada aluna só é cadastrada com a autorização registrada.</p>
+    <p style="margin-bottom:0">Se uma aluna pedir, você pode excluir todos os dados dela na ficha da aluna.</p>
+  </div>
+
+  <h2 style="margin-top:28px">Demonstração</h2>
+  <div class="actions">
+    <button class="btn ghost" data-a="exemplo">Carregar dados fictícios de exemplo</button>
+    <button class="btn danger" data-a="apagarTudo">Apagar todos os dados deste celular</button>
+  </div>
+  <p class="muted small" style="text-align:center;margin-top:24px">Chamada Ativa · projeto extensionista PUCPR · ADS</p>`;
+};
+
+function vazioBox(msg, rotulo, acao){
+  return `<div class="empty"><p>${msg}</p><button class="btn" data-a="${acao}">${rotulo}</button></div>`;
+}
+
+/* ================= Modais ================= */
+function abrir(titulo, corpo){
+  fechar();
+  const ov = document.createElement('div');
+  ov.className = 'ov'; ov.id = 'ov';
+  ov.innerHTML = `<div class="sheet" role="dialog" aria-modal="true" aria-label="${esc(titulo)}"><div class="top"><h2>${esc(titulo)}</h2><button class="x" data-a="fechar" aria-label="Fechar">×</button></div>${corpo}</div>`;
+  ov.addEventListener('click', e => { if(e.target === ov) fechar(); });
+  document.body.appendChild(ov);
+}
+function fechar(){ const o = document.getElementById('ov'); if(o) o.remove(); }
+
+function formAluna(a){
+  const novo = !a; a = a || {nome:'', tel:'', turmaId:ui.turma || (S.turmas[0]||{}).id, status:'ativa', consent:false};
+  abrir(novo ? 'Nova aluna' : 'Editar aluna', `
+    <label class="f" for="fNome">Nome completo</label><input type="text" id="fNome" value="${esc(a.nome)}" autocomplete="off">
+    <label class="f" for="fTel">Celular com WhatsApp (com DDD)</label><input type="tel" id="fTel" value="${esc(a.tel)}" placeholder="(41) 99999-9999" inputmode="tel">
+    <label class="f" for="fTurma">Turma</label>
+    <select id="fTurma">${S.turmas.map(t => `<option value="${t.id}" ${t.id===a.turmaId?'selected':''}>${esc(t.nome)}</option>`).join('')}</select>
+    <label class="f" for="fStatus">Situação</label>
+    <select id="fStatus">${Object.entries(STATUS).map(([k,v]) => `<option value="${k}" ${k===a.status?'selected':''}>${v}</option>`).join('')}</select>
+    <label class="check"><input type="checkbox" id="fConsent" ${a.consent?'checked':''}><span>A aluna (ou responsável) autorizou o registro destes dados e o contato pelo WhatsApp, apenas para a organização das aulas.</span></label>
+    <div class="actions"><button class="btn" data-a="salvarAluna" data-id="${novo?'':a.id}">Salvar</button></div>`);
+}
+
+function verAluna(id){
+  const a = aluna(id); if(!a) return;
+  const t = turma(a.turmaId), c = contagem(a), regs = registros(a).slice(0,12);
+  const av = S.avaliacoes.filter(v => v.alunaId === id).sort((x,y) => y.data.localeCompare(x.data));
+  const link = linkWhats(a);
+  abrir(a.nome, `
+    <p class="muted" style="margin-top:0">${t?esc(t.nome):'Sem turma'} · <span class="tag pri">${STATUS[a.status]}</span>${a.tel?' · '+esc(a.tel):''}</p>
+    <div class="sum"><div><b>${c.P}</b>presenças</div><div><b>${c.F}</b>faltas s/ just.</div><div><b>${c.J}</b>justificadas</div></div>
+    ${a.desde ? `<p class="muted small" style="margin-top:-4px">Contagem de faltas desde ${fmt(a.desde)}.</p>` : ''}
+    <h3>Evolução</h3>
+    ${av.length ? `<ul class="hist card" style="padding:4px 14px">${av.map(v => `<li><span>${fmt(v.data)}${v.obs?'<br><span class="muted small">'+esc(v.obs)+'</span>':''}</span><b>Nível ${v.nivel} · ${NIVEIS[v.nivel]}</b></li>`).join('')}</ul>` : '<p class="muted">Sem avaliações ainda.</p>'}
+    <h3>Últimas chamadas</h3>
+    ${regs.length ? `<ul class="hist card" style="padding:4px 14px">${regs.map(r => `<li><span>${fmt(r.data)}${r.m?'<br><span class="muted small">'+esc(r.m)+'</span>':''}</span><span class="tag ${r.s==='P'?'ok':r.s==='F'?'bad':'just'}">${{P:'Presente',F:'Falta',J:'Justificada'}[r.s]}</span></li>`).join('')}</ul>` : '<p class="muted">Nenhuma chamada registrada.</p>'}
+    <div class="actions">
+      <button class="btn" data-a="editAluna" data-id="${id}">Editar dados</button>
+      ${link ? `<a class="btn wa" href="${link}" target="_blank" rel="noopener" data-a="avisou" data-id="${id}">Enviar mensagem de faltas</a>` : ''}
+      ${a.status==='ativa' && c.F ? `<button class="btn ghost" data-a="zerar" data-id="${id}">Zerar contagem de faltas</button>` : ''}
+      ${a.status==='espera' ? `<button class="btn sec" data-a="ativar" data-id="${id}">Ativar (ocupar vaga)</button>` : ''}
+      <button class="btn danger" data-a="excluirAluna" data-id="${id}">Excluir aluna e seus dados</button>
+    </div>`);
+}
+
+function formTurma(t){
+  const novo = !t; t = t || {nome:'', horario:'', vagas:20};
+  abrir(novo ? 'Nova turma' : 'Editar turma', `
+    <label class="f" for="tNome">Nome da turma</label><input type="text" id="tNome" value="${esc(t.nome)}" placeholder="Ex.: Turma Segunda 8h">
+    <label class="f" for="tHor">Dias e horário</label><input type="text" id="tHor" value="${esc(t.horario)}" placeholder="Ex.: Seg e Qua, 8h às 9h">
+    <label class="f" for="tVagas">Número de vagas</label><input type="number" id="tVagas" min="1" value="${t.vagas||''}">
+    <div class="actions"><button class="btn" data-a="salvarTurma" data-id="${novo?'':t.id}">Salvar</button>
+    ${novo ? '' : `<button class="btn danger" data-a="excluirTurma" data-id="${t.id}">Excluir turma</button>`}</div>`);
+}
+
+/* ================= Ações ================= */
+const A = {
+  tab: d => { ui.tab = d.t; render(); scrollTo(0,0); },
+  fechar: () => fechar(),
+  escTurma: d => { ui.turma = d.id; render(); },
+  evTurma: d => { ui.evTurma = d.id; render(); },
+  seg: d => { ui.seg = d.s; render(); },
+  marcar: d => {
+    const k = ui.turma + '|' + ui.data;
+    const reg = S.chamadas[k] = S.chamadas[k] || {};
+    const a = aluna(d.id), antes = faltas(a);
+    if(reg[d.id] && reg[d.id].s === d.s) delete reg[d.id];
+    else reg[d.id] = {s:d.s, m:(reg[d.id] && reg[d.id].m) || ''};
+    if(!Object.keys(reg).length) delete S.chamadas[k];
+    salvar(); render();
+    if(faltas(a) >= limite() && antes < limite()) toast(`${a.nome.split(' ')[0]} chegou ao limite de faltas. Veja em Alertas.`);
+  },
+  todasPresentes: () => {
+    const k = ui.turma + '|' + ui.data;
+    const reg = S.chamadas[k] = S.chamadas[k] || {};
+    S.alunas.filter(a => a.status==='ativa' && a.turmaId===ui.turma).forEach(a => { if(!reg[a.id]) reg[a.id] = {s:'P', m:''}; });
+    salvar(); render(); toast('Alunas sem marcação foram marcadas como presentes.');
+  },
+  novaAluna: () => { if(!S.turmas.length){ toast('Cadastre uma turma antes.'); return A.novaTurma(); } formAluna(null); },
+  editAluna: d => formAluna(aluna(d.id)),
+  verAluna: d => verAluna(d.id),
+  salvarAluna: d => {
+    const nome = document.getElementById('fNome').value.trim();
+    const tel = document.getElementById('fTel').value.trim();
+    const consent = document.getElementById('fConsent').checked;
+    if(!nome) return toast('Informe o nome.');
+    if(!consent) return toast('Registre a autorização da aluna para salvar.');
+    const dados = {nome, tel, consent, turmaId:document.getElementById('fTurma').value, status:document.getElementById('fStatus').value};
+    if(d.id){ Object.assign(aluna(d.id), dados); }
+    else { S.alunas.push(Object.assign({id:uid(), entrada:hoje(), desde:hoje()}, dados)); }
+    salvar(); fechar(); render(); toast('Aluna salva.');
+  },
+  zerar: d => {
+    if(!confirm('Zerar a contagem de faltas? O histórico continua guardado.')) return;
+    const a = aluna(d.id); a.desde = addDias(hoje(), 1); a.avisadaEm = null;
+    salvar(); fechar(); render(); toast('Contagem zerada a partir de amanhã.');
+  },
+  ativar: d => {
+    const a = aluna(d.id); a.status = 'ativa'; a.desde = hoje();
+    salvar(); fechar(); render(); toast(`${a.nome.split(' ')[0]} agora ocupa uma vaga.`);
+  },
+  excluirAluna: d => {
+    const a = aluna(d.id);
+    if(!confirm(`Excluir ${a.nome} e todo o histórico dela? Não dá para desfazer.`)) return;
+    S.alunas = S.alunas.filter(x => x.id !== d.id);
+    S.avaliacoes = S.avaliacoes.filter(v => v.alunaId !== d.id);
+    for(const k in S.chamadas){ delete S.chamadas[k][d.id]; if(!Object.keys(S.chamadas[k]).length) delete S.chamadas[k]; }
+    salvar(); fechar(); render(); toast('Dados da aluna excluídos.');
+  },
+  avisou: d => { const a = aluna(d.id); a.avisadaEm = hoje(); salvar(); setTimeout(render, 300); },
+  liberarVaga: d => {
+    const a = aluna(d.id);
+    if(!confirm(`Liberar a vaga de ${a.nome}? Ela passa para "Inativa".`)) return;
+    a.status = 'inativa'; salvar();
+    const fila = S.alunas.filter(x => x.status === 'espera').sort((x,y) => {
+      const px = x.turmaId === a.turmaId ? 0 : 1, py = y.turmaId === a.turmaId ? 0 : 1;
+      return px - py || (x.entrada||'').localeCompare(y.entrada||'');
+    });
+    render();
+    const t = turma(a.turmaId);
+    abrir('Vaga liberada', `<p>A vaga na <b>${esc(t?t.nome:'turma')}</b> está livre.</p>` + (fila.length
+      ? `<p class="muted small">Próximas da lista de espera:</p>` + fila.slice(0,5).map((x,i) => `<button class="list-item" data-a="ocupar" data-id="${x.id}" data-t="${a.turmaId}"><div class="grow"><b>${i+1}º ${esc(x.nome)}</b><span>na fila desde ${fmt(x.entrada)}</span></div><span class="tag ok">Chamar</span></button>`).join('')
+      : `<p class="muted">A lista de espera está vazia.</p>`));
+  },
+  ocupar: d => {
+    const x = aluna(d.id); x.status = 'ativa'; x.turmaId = d.t; x.desde = hoje();
+    salvar(); fechar(); render(); toast(`${x.nome.split(' ')[0]} entrou na turma. Avise-a pelo WhatsApp.`);
+  },
+  nivel: d => {
+    const n = Number(d.n), dt = hoje();
+    let v = S.avaliacoes.find(x => x.alunaId === d.id && x.data === dt);
+    if(v) v.nivel = n; else S.avaliacoes.push({id:uid(), alunaId:d.id, data:dt, nivel:n, obs:''});
+    salvar(); render(); toast(`Nível ${n} (${NIVEIS[n]}) registrado.`);
+  },
+  obs: d => {
+    const a = aluna(d.id), v = S.avaliacoes.find(x => x.alunaId === d.id && x.data === hoje());
+    abrir('Anotação de hoje', `<p class="muted" style="margin-top:0">${esc(a.nome)} · ${fmt(hoje())}</p>
+      <textarea id="oTxt" placeholder="Ex.: já faz o exercício com caneleira de 1 kg">${esc(v?v.obs:'')}</textarea>
+      ${v ? '' : '<p class="muted small">Ainda sem nível hoje: a anotação mantém o último nível registrado.</p>'}
+      <div class="actions"><button class="btn" data-a="salvarObs" data-id="${d.id}">Salvar anotação</button></div>`);
+  },
+  salvarObs: d => {
+    const txt = document.getElementById('oTxt').value.trim(), dt = hoje();
+    let v = S.avaliacoes.find(x => x.alunaId === d.id && x.data === dt);
+    if(!v){ const ult = nivelAtual(aluna(d.id)); v = {id:uid(), alunaId:d.id, data:dt, nivel: ult ? ult.nivel : 1, obs:''}; S.avaliacoes.push(v); }
+    v.obs = txt; salvar(); fechar(); render(); toast('Anotação salva.');
+  },
+  novaTurma: () => formTurma(null),
+  editTurma: d => formTurma(turma(d.id)),
+  salvarTurma: d => {
+    const nome = document.getElementById('tNome').value.trim();
+    if(!nome) return toast('Informe o nome da turma.');
+    const dados = {nome, horario:document.getElementById('tHor').value.trim(), vagas:Number(document.getElementById('tVagas').value)||null};
+    if(d.id) Object.assign(turma(d.id), dados);
+    else { const t = Object.assign({id:uid()}, dados); S.turmas.push(t); ui.turma = t.id; }
+    salvar(); fechar(); render(); toast('Turma salva.');
+  },
+  excluirTurma: d => {
+    if(S.alunas.some(a => a.turmaId === d.id && a.status !== 'inativa')) return toast('Mova as alunas desta turma antes de excluir.');
+    if(!confirm('Excluir esta turma?')) return;
+    S.turmas = S.turmas.filter(t => t.id !== d.id);
+    salvar(); fechar(); render();
+  },
+  salvarCfg: () => {
+    S.config.limite = Math.max(1, Number(document.getElementById('cfgLimite').value) || 3);
+    S.config.msg = document.getElementById('cfgMsg').value.trim() || vazio().config.msg;
+    salvar(); render(); toast('Regra salva.');
+  },
+  exportar: () => {
+    const blob = new Blob([JSON.stringify(S, null, 2)], {type:'application/json'});
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob); a.download = `chamada-ativa-copia-${hoje()}.json`;
+    document.body.appendChild(a); a.click(); a.remove();
+    setTimeout(() => URL.revokeObjectURL(a.href), 2000);
+    toast('Cópia baixada. Guarde em local seguro.');
+  },
+  importar: () => document.getElementById('arquivo').click(),
+  exemplo: () => {
+    if((S.alunas.length || S.turmas.length) && !confirm('Isso substitui os dados atuais pelos fictícios. Continuar?')) return;
+    S = exemplo(); salvar(); ui.turma = null; ui.evTurma = null; ui.tab = 'chamada'; render(); toast('Dados fictícios carregados.');
+  },
+  apagarTudo: () => {
+    if(!confirm('Apagar TODOS os dados deste celular? Faça uma cópia antes.')) return;
+    S = vazio(); salvar(); ui.turma = null; render(); toast('Todos os dados foram apagados.');
+  }
+};
+
+document.addEventListener('click', e => {
+  const el = e.target.closest('[data-a]'); if(!el) return;
+  const fn = A[el.dataset.a]; if(!fn) return;
+  if(el.tagName !== 'A' || el.dataset.a === 'tab') e.preventDefault();
+  fn(el.dataset, el);
+});
+document.addEventListener('change', e => {
+  if(e.target.id === 'dataCh'){ ui.data = e.target.value || hoje(); render(); }
+  if(e.target.dataset && e.target.dataset.motivo){
+    const reg = S.chamadas[ui.turma + '|' + ui.data];
+    if(reg && reg[e.target.dataset.motivo]){ reg[e.target.dataset.motivo].m = e.target.value.trim(); salvar(); toast('Motivo salvo.'); }
+  }
+});
+document.addEventListener('input', e => {
+  if(e.target.id === 'busca'){ ui.busca = e.target.value; document.getElementById('listaAlunas').innerHTML = listaAlunas(); }
+});
+document.getElementById('arquivo').addEventListener('change', e => {
+  const f = e.target.files[0]; if(!f) return;
+  const r = new FileReader();
+  r.onload = () => {
+    try{
+      const d = JSON.parse(r.result);
+      if(!Array.isArray(d.alunas) || !Array.isArray(d.turmas) || typeof d.chamadas !== 'object') throw 0;
+      if(!confirm(`Restaurar a cópia com ${d.turmas.length} turmas e ${d.alunas.length} alunas? Os dados atuais serão substituídos.`)) return;
+      S = Object.assign(vazio(), d, {config:Object.assign(vazio().config, d.config||{})});
+      salvar(); ui.turma = null; render(); toast('Cópia restaurada.');
+    }catch(err){ toast('Arquivo inválido. Use uma cópia gerada por este app.'); }
+    e.target.value = '';
+  };
+  r.readAsText(f);
+});
+
+/* ================= Renderização ================= */
+function render(){
+  const nAl = emAlerta().length;
+  document.getElementById('titulo').textContent = S.config.programa || 'Chamada Ativa';
+  document.getElementById('nav').innerHTML = ABAS.map(([k,l]) =>
+    `<button class="${ui.tab===k?'on':''}" data-a="tab" data-t="${k}" aria-label="${l}">${IC[k]}<span>${l}</span>${k==='alertas'&&nAl?`<span class="badge">${nAl}</span>`:''}</button>`).join('');
+  document.getElementById('main').innerHTML = V[ui.tab]();
+}
+
+/* ================= Dados fictícios para demonstração ================= */
+function exemplo(){
+  const d = vazio();
+  const t1 = {id:uid(), nome:'Turma Seg/Qua 8h', horario:'Segunda e quarta, 8h às 9h', vagas:20};
+  const t2 = {id:uid(), nome:'Turma Ter/Qui 9h', horario:'Terça e quinta, 9h às 10h', vagas:20};
+  d.turmas = [t1, t2];
+  const nomes1 = ['Maria Aparecida Souza','Terezinha Lopes','Ana Lúcia Ferreira','Iracema Santos','Dirce Oliveira','Neusa Ribeiro'];
+  const nomes2 = ['Cecília Martins','Odete Almeida','Zilda Pereira','Rosa Maria Costa','Lourdes Carvalho'];
+  const ini = addDias(hoje(), -30);
+  const mk = (nome, t, i) => ({id:uid(), nome, tel:'(41) 9' + String(8800+i).padStart(4,'0') + '-' + String(1000+i*37).slice(-4), turmaId:t.id, status:'ativa', consent:true, entrada:ini, desde:ini});
+  nomes1.forEach((n,i) => d.alunas.push(mk(n, t1, i)));
+  nomes2.forEach((n,i) => d.alunas.push(mk(n, t2, i+10)));
+  ['Elza Moreira','Jandira Rocha','Benedita Lima'].forEach((n,i) => d.alunas.push({id:uid(), nome:n, tel:'(41) 99700-12' + (10+i), turmaId:i%2?t2.id:t1.id, status:'espera', consent:true, entrada:addDias(hoje(), -20+i*3), desde:hoje()}));
+  const faltosa = {[d.alunas[1].id]:3, [d.alunas[4].id]:2, [d.alunas[8].id]:2};
+  for(const t of [t1, t2]){
+    const dias = t === t1 ? [1,3] : [2,4];
+    const doTurma = d.alunas.filter(a => a.turmaId === t.id && a.status === 'ativa');
+    let aula = 0;
+    for(let i = 28; i >= 1; i--){
+      const dt = addDias(hoje(), -i);
+      if(!dias.includes(new Date(dt+'T12:00:00').getDay())) continue;
+      const reg = {};
+      doTurma.forEach((a, j) => {
+        let s = 'P';
+        if(faltosa[a.id] && aula % 2 === 1 && faltosa[a.id] > 0){ s = 'F'; faltosa[a.id]--; }
+        else if((aula + j) % 9 === 4) { s = 'J'; }
+        reg[a.id] = {s, m: s==='J' ? 'Consulta médica' : ''};
+      });
+      d.chamadas[t.id + '|' + dt] = reg; aula++;
+    }
+  }
+  d.alunas.filter(a => a.status === 'ativa').forEach((a, i) => {
+    const base = 1 + (i % 4);
+    d.avaliacoes.push({id:uid(), alunaId:a.id, data:addDias(hoje(), -28), nivel:base, obs:''});
+    if(i % 3 !== 2) d.avaliacoes.push({id:uid(), alunaId:a.id, data:addDias(hoje(), -7), nivel:Math.min(5, base+1), obs: i===0 ? 'Já faz agachamento com apoio na cadeira' : ''});
+  });
+  return d;
+}
+
+render();
+if('serviceWorker' in navigator && location.protocol.startsWith('http')){
+  navigator.serviceWorker.register('sw.js').catch(() => {});
+}
+</script>
+</body>
+</html>
